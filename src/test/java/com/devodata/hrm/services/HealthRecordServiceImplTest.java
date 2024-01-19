@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
@@ -58,32 +60,7 @@ class HealthRecordServiceImplTest {
         verify(healthRecordRepository, times(1)).findById(healthRecordId);
         verifyNoMoreInteractions(healthRecordRepository);
     }
-    @Test
-    void getHealthRecord_Success() throws HealthRecordNotFoundException, ParseException {
-        Long healthRecordId = 1L;
 
-        // Parse the date string using SimpleDateFormat
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date appointmentDate = dateFormat.parse("2022-01-18");
-
-        HealthRecord healthRecord = HealthRecord.builder()
-                .id(healthRecordId)
-                .appointmentDate(appointmentDate)
-                .vitalSigns("Normal")
-                .medications("Paracetamol")
-                .user(new UserEntity())
-                .build();
-
-        when(healthRecordRepository.findById(healthRecordId)).thenReturn(Optional.of(healthRecord));
-
-        HealthRecordResponse healthRecordResponse = healthRecordService.getHealthRecord(healthRecordId);
-
-        assertNotNull(healthRecordResponse);
-        assertEquals(healthRecordId, healthRecordResponse.getId());
-
-        verify(healthRecordRepository, times(1)).findById(healthRecordId);
-        verifyNoMoreInteractions(healthRecordRepository);
-    }
 
     @Test
     void getHealthRecord_HealthRecordNotFoundException() {
@@ -98,16 +75,20 @@ class HealthRecordServiceImplTest {
     }
 
     @Test
-    void updateHealthRecord_Success() {
+    void updateHealthRecord_Success() throws ParseException {
         UpdateHealthRecordRequest updateHealthRecord = new UpdateHealthRecordRequest();
         updateHealthRecord.setId(1L);
-        updateHealthRecord.setAppointmentDate(new Date("2022-01-19"));
+
+        // Use SimpleDateFormat to parse the date
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        updateHealthRecord.setAppointmentDate(dateFormat.parse("2022-01-19"));
+
         updateHealthRecord.setVitalSigns("Improved");
         updateHealthRecord.setMedications("Ibuprofen");
 
         HealthRecord existingHealthRecord = HealthRecord.builder()
                 .id(updateHealthRecord.getId())
-                .appointmentDate(new Date("2022-01-18"))
+                .appointmentDate(dateFormat.parse("2022-01-18"))
                 .vitalSigns("Normal")
                 .medications("Paracetamol")
                 .user(new UserEntity())
